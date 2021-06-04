@@ -1,6 +1,6 @@
-use alloc::vec::Vec;
-use sha2::sha256::Sha256;
-use std::net::udp::UdpSocket;
+use rand::RngCore;
+use sha2::{Digest, Sha256};
+use std::net::UdpSocket;
 
 pub fn run_test_client() {
     let socket = UdpSocket::bind("0.0.0.0:0").expect("Could not bind to address");
@@ -23,3 +23,4 @@ pub fn run_test_client() {
         socket.send_to(&buf, dest).expect("Could not send");
     }
 }
+
