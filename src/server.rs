@@ -1,41 +1,61 @@
 use std::net::UdpSocket;
 use sha2::{Digest, Sha256};
 use crate::{MESSAGE_SIZE, HASH_SIZE};
+use std::sync::{Mutex, Arc};
+use std::thread;
+use std::time::Duration;
 
 pub fn run_test_server(port: &str) {
     let socket = UdpSocket::bind(format!("0.0.0.0:{}",port)).expect("Could not bind to address");
-    let mut status = ExperimentStatus { good_count: 0, bad_count: 0};
+    println!("Listening on port {}", port);
+    let status = Arc::new(Mutex::new(ExperimentStatus { good_count: 0, bad_count: 0}));
+
+    start_monitoring_thread(&status);
     loop {
         let mut buf = [0; MESSAGE_SIZE];
         socket.recv_from(&mut buf).expect("Could not receive");
-        let hash = &buf[MESSAGE_SIZE-HASH_SIZE..];
-        let data = &buf[..MESSAGE_SIZE-HASH_SIZE];
+        let message_was_valid = validate_message(&buf);
 
-        let mut digest = Sha256::new();
-        digest.update(&data);
-        let hash_result = digest.finalize();
-        if &hash_result[..] != hash {
+        let mut status = status.lock().unwrap();
+        if message_was_valid {
             status.bad_count += 1;
-            println!("BAD HASH!");
         } else {
             status.good_count += 1;
-            if status.total_received() % 100_000 == 0 {
-                println!("{} good messages, {} bad messages", status.good_count, status.bad_count);
-            }
-        }
-
-        if status.total_received() == 100_000_000 {
-            println!("Fully complete.");
-            break;
         }
     }
 }
 
+fn validate_message(msg: &[u8]) -> bool {
+    let hash = &msg[MESSAGE_SIZE-HASH_SIZE..];
+    let data = &msg[..MESSAGE_SIZE-HASH_SIZE];
+
+    let mut digest = Sha256::new();
+    digest.update(&data);
+    let hash_result = digest.finalize();
+
+    &hash_result[..] != hash
+}
+
+#[derive(Eq, PartialEq, Hash, Clone)]
 struct ExperimentStatus {
     good_count: u64,
     bad_count: u64
 }
 
-impl ExperimentStatus {
-    pub fn total_received(&self) -> u64 { self.good_count + self.bad_count }
+fn start_monitoring_thread(status: &Arc<Mutex<ExperimentStatus>>) {
+    let status = Arc::clone(&status);
+    thread::spawn(move || {
+        let mut last_status = status.lock().unwrap().clone();
+        loop {
+            {
+                let status = status.lock().unwrap();
+                if *status != last_status {
+                    println!("{} good datagrams, {} bad datagrams", status.good_count, status.bad_count);
+                    last_status = status.clone();
+                }
+            }
+            thread::sleep(Duration::from_secs(1));
+        }
+    });
 }
+
