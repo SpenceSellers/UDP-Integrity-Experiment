@@ -1,9 +1,9 @@
 use std::net::UdpSocket;
-use sha2::{Digest, Sha256};
 use crate::{MESSAGE_SIZE, HASH_SIZE};
 use std::sync::{Mutex, Arc};
 use std::thread;
 use std::time::Duration;
+use crate::messages::validate_message;
 
 pub fn run_test_server(port: &str) {
     let socket = UdpSocket::bind(format!("0.0.0.0:{}",port)).expect("Could not bind to address");
@@ -25,16 +25,6 @@ pub fn run_test_server(port: &str) {
     }
 }
 
-fn validate_message(msg: &[u8]) -> bool {
-    let hash = &msg[MESSAGE_SIZE-HASH_SIZE..];
-    let data = &msg[..MESSAGE_SIZE-HASH_SIZE];
-
-    let mut digest = Sha256::new();
-    digest.update(&data);
-    let hash_result = digest.finalize();
-
-    &hash_result[..] != hash
-}
 
 #[derive(Eq, PartialEq, Hash, Clone)]
 struct ExperimentStatus {

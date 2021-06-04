@@ -1,5 +1,6 @@
 mod client;
 mod server;
+mod messages;
 
 use std::env;
 
