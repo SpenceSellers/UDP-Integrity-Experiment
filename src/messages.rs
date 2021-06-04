@@ -7,24 +7,24 @@ pub const HASH_SIZE: usize = 32;
 
 pub fn validate_message(msg: &[u8]) -> bool {
     let hash = &msg[MESSAGE_SIZE-HASH_SIZE..];
-    let data = &msg[..MESSAGE_SIZE-HASH_SIZE];
+    let payload = &msg[..MESSAGE_SIZE-HASH_SIZE];
 
     let mut digest = Sha256::new();
-    digest.update(&data);
+    digest.update(&payload);
     let hash_result = digest.finalize();
 
     &hash_result[..] == hash
 }
 
 pub fn build_message(random: &mut ThreadRng) -> Vec<u8> {
-    let mut data = [0u8; MESSAGE_SIZE-HASH_SIZE];
-    random.fill_bytes(&mut data);
+    let mut payload = [0u8; MESSAGE_SIZE-HASH_SIZE];
+    random.fill_bytes(&mut payload);
 
     let mut digest = Sha256::new();
-    digest.update(&data);
+    digest.update(&payload);
     let result = digest.finalize();
 
-    let buf: Vec<u8> = data.iter()
+    let buf: Vec<u8> = payload.iter()
         .chain(&result)
         .cloned()
         .collect();
