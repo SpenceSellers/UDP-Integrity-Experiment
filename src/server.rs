@@ -1,15 +1,16 @@
 use std::net::UdpSocket;
 use sha2::{Digest, Sha256};
+use crate::{MESSAGE_SIZE, HASH_SIZE};
 
-pub fn run_test_server() {
-    let socket = UdpSocket::bind("0.0.0.0:3555").expect("Could not bind to address");
+pub fn run_test_server(port: &str) {
+    let socket = UdpSocket::bind(format!("0.0.0.0:{}",port)).expect("Could not bind to address");
     let mut good_count: u64 = 0;
     let mut bad_count: u64 = 0;
     loop {
-        let mut buf = [0; 256];
+        let mut buf = [0; MESSAGE_SIZE];
         socket.recv_from(&mut buf).expect("Could not receive");
-        let hash = &buf[224..];
-        let data = &buf[..224];
+        let hash = &buf[MESSAGE_SIZE-HASH_SIZE..];
+        let data = &buf[..MESSAGE_SIZE-HASH_SIZE];
 
         let mut digest = Sha256::new();
         digest.update(&data);
