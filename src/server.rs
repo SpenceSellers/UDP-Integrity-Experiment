@@ -1,9 +1,8 @@
 use std::net::UdpSocket;
-use crate::{MESSAGE_SIZE, HASH_SIZE};
 use std::sync::{Mutex, Arc};
 use std::thread;
 use std::time::Duration;
-use crate::messages::validate_message;
+use crate::messages::{validate_message, MESSAGE_SIZE};
 
 pub fn run_test_server(port: &str) {
     let socket = UdpSocket::bind(format!("0.0.0.0:{}",port)).expect("Could not bind to address");
@@ -18,9 +17,9 @@ pub fn run_test_server(port: &str) {
 
         let mut status = status.lock().unwrap();
         if message_was_valid {
-            status.bad_count += 1;
-        } else {
             status.good_count += 1;
+        } else {
+            status.bad_count += 1;
         }
     }
 }

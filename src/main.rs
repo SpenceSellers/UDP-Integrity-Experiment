@@ -4,8 +4,6 @@ mod messages;
 
 use std::env;
 
-pub const MESSAGE_SIZE: usize = 256;
-pub const HASH_SIZE: usize = 32;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
