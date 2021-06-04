@@ -5,6 +5,11 @@ pub fn run_test_client(dest: &str) {
     let socket = UdpSocket::bind("0.0.0.0:0").expect("Could not bind to address");
     let mut random = rand::thread_rng();
 
+    ctrlc::set_handler(move || {
+        println!("Quitting");
+        std::process::exit(0);
+    }).expect("Could not set ctrl-c handler.");
+
     let mut count = 0u64;
     println!("Sending to {}", dest);
     loop {

@@ -24,7 +24,6 @@ pub fn run_test_server(port: &str) {
     }
 }
 
-
 #[derive(Eq, PartialEq, Hash, Clone)]
 struct ExperimentStatus {
     good_count: u64,
