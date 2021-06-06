@@ -12,7 +12,8 @@ pub fn run_test_server(port: &str) {
     let status = Arc::new(Mutex::new(ExperimentStatus {
         good_count: 0,
         bad_count: 0,
-        last_sequence_number: None
+        last_sequence_number: None,
+        out_of_order: 0
     }));
 
     let experiment = Experiment { port: u16::from_str(port).expect("Could not parse port")};
@@ -26,6 +27,10 @@ pub fn run_test_server(port: &str) {
         let mut status = status.lock().unwrap();
         if let Some(msg) = decoded_message {
             status.good_count += 1;
+            if status.last_sequence_number.is_some() && msg.sequence_number != status.last_sequence_number.unwrap() + 1 {
+                status.out_of_order += 1;
+            }
+            status.last_sequence_number = Some(msg.sequence_number);
         } else {
             status.bad_count += 1;
         }
@@ -36,7 +41,8 @@ pub fn run_test_server(port: &str) {
 struct ExperimentStatus {
     good_count: u64,
     bad_count: u64,
-    last_sequence_number: Option<u32>
+    last_sequence_number: Option<u32>,
+    out_of_order: u64,
 }
 
 #[derive(Clone)]

@@ -11,6 +11,7 @@ pub fn run_test_client(dest: &str) {
     let mut random = rand::thread_rng();
 
     let state = Arc::new(Mutex::new(ClientState { count: 0 }));
+    let mut sequence_number = 0;
     let (tx, rx) = channel::<()>();
     set_ctrlc_handler(&state, tx);
     start_monitoring_thread(&state);
@@ -21,7 +22,7 @@ pub fn run_test_client(dest: &str) {
             sleep(Duration::from_secs(2));
             break;
         }
-        let buf = build_message(0, &mut random);
+        let buf = build_message(sequence_number, &mut random);
 
         sleep(Duration::from_micros(1000));
         socket.send_to(&buf, dest).expect("Could not send");
