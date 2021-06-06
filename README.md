@@ -7,3 +7,10 @@ Let's send a bunch of UDP datagrams and find out.
 
 
 ![image](https://user-images.githubusercontent.com/5377932/120906724-7ee3a280-c621-11eb-8759-bcc9a0b050c9.png)
+
+
+## Results
+
+| Experiment | Datagrams sent | Datagrams corrupted | Datagrams that didn't arrive |
+| --- | --- | --- | --- | 
+| LAN between two computers | 58,090,836 | 0 | 0 |
