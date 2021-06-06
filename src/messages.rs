@@ -1,11 +1,17 @@
 use sha2::{Digest, Sha256};
 use rand::prelude::ThreadRng;
 use rand::RngCore;
+use std::mem;
+use std::convert::TryInto;
 
 pub const MESSAGE_SIZE: usize = 256;
 pub const HASH_SIZE: usize = 32;
 
-pub fn validate_message(msg: &[u8]) -> bool {
+pub struct DecodedMessage {
+    pub sequence_number: u32
+}
+
+pub fn validate_message(msg: &[u8]) -> Option<DecodedMessage> {
     let hash = &msg[MESSAGE_SIZE-HASH_SIZE..];
     let payload = &msg[..MESSAGE_SIZE-HASH_SIZE];
 
@@ -13,12 +19,22 @@ pub fn validate_message(msg: &[u8]) -> bool {
     digest.update(&payload);
     let hash_result = digest.finalize();
 
-    &hash_result[..] == hash
+    if &hash_result[..] == hash {
+        return Some(DecodedMessage {
+            sequence_number: u32::from_be_bytes(payload[..4].try_into().unwrap())
+        });
+    }
+
+    return None;
 }
 
 pub fn build_message(random: &mut ThreadRng) -> Vec<u8> {
+    let mut rand_payload = [0u8; MESSAGE_SIZE-HASH_SIZE-mem::size_of::<u32>()];
+    random.fill_bytes(&mut rand_payload);
+
     let mut payload = [0u8; MESSAGE_SIZE-HASH_SIZE];
-    random.fill_bytes(&mut payload);
+    payload[..4].copy_from_slice(&u32::to_be_bytes(200));
+    payload[4..].copy_from_slice(&rand_payload);
 
     let mut digest = Sha256::new();
     digest.update(&payload);
@@ -40,13 +56,13 @@ mod tests {
     #[test]
     fn test_generated_message_is_valid() {
         let msg = build_message(&mut thread_rng());
-        assert!(validate_message(&msg));
+        assert!(validate_message(&msg).is_some());
     }
 
     #[test]
     fn test_corrupted_message_is_invalid() {
         let mut msg = build_message(&mut thread_rng());
         msg[20] = 42;
-        assert!(!validate_message(&msg));
+        assert!(validate_message(&msg).is_none());
     }
 }

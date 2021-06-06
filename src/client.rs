@@ -23,7 +23,7 @@ pub fn run_test_client(dest: &str) {
         }
         let buf = build_message(&mut random);
 
-        // sleep(Duration::from_millis(1));
+        sleep(Duration::from_micros(1000));
         socket.send_to(&buf, dest).expect("Could not send");
         let mut state = state.lock().unwrap();
         state.count += 1;
