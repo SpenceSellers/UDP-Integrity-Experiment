@@ -59,7 +59,12 @@ fn start_monitoring_thread(experiment: Experiment, status: &Arc<Mutex<Experiment
                 let port_stats = proc_net::get_udp_port_stats(experiment.port).unwrap();
                 let status = status.lock().unwrap();
                 if *status != last_status {
-                    println!("Datagrams: {:8} good {:6} bad {:6} dropped by us {:6} in rx queue", status.good_count, status.bad_count, port_stats.drops, port_stats.rx_queue);
+                    println!("Datagrams: {:8} good {:6} bad {:6} out of order {:6} dropped by us {:6} in rx queue",
+                             status.good_count,
+                             status.bad_count,
+                             status.out_of_order,
+                             port_stats.drops,
+                             port_stats.rx_queue);
                     last_status = status.clone();
                 }
             }

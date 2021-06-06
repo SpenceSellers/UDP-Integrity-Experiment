@@ -28,6 +28,7 @@ pub fn run_test_client(dest: &str) {
         socket.send_to(&buf, dest).expect("Could not send");
         let mut state = state.lock().unwrap();
         state.count += 1;
+        sequence_number += 1;
     }
 }
 
