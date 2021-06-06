@@ -21,7 +21,7 @@ pub fn run_test_client(dest: &str) {
             sleep(Duration::from_secs(2));
             break;
         }
-        let buf = build_message(&mut random);
+        let buf = build_message(0, &mut random);
 
         sleep(Duration::from_micros(1000));
         socket.send_to(&buf, dest).expect("Could not send");

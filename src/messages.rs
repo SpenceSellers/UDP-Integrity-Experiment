@@ -28,12 +28,12 @@ pub fn validate_message(msg: &[u8]) -> Option<DecodedMessage> {
     return None;
 }
 
-pub fn build_message(random: &mut ThreadRng) -> Vec<u8> {
+pub fn build_message(sequence_number: u32, random: &mut ThreadRng) -> Vec<u8> {
     let mut rand_payload = [0u8; MESSAGE_SIZE-HASH_SIZE-mem::size_of::<u32>()];
     random.fill_bytes(&mut rand_payload);
 
     let mut payload = [0u8; MESSAGE_SIZE-HASH_SIZE];
-    payload[..4].copy_from_slice(&u32::to_be_bytes(200));
+    payload[..4].copy_from_slice(&u32::to_be_bytes(sequence_number));
     payload[4..].copy_from_slice(&rand_payload);
 
     let mut digest = Sha256::new();
@@ -55,13 +55,18 @@ mod tests {
 
     #[test]
     fn test_generated_message_is_valid() {
-        let msg = build_message(&mut thread_rng());
-        assert!(validate_message(&msg).is_some());
+        let msg = build_message(1057, &mut thread_rng());
+
+        if let Some(decoded) = validate_message(&msg) {
+            assert_eq!(decoded.sequence_number, 1057);
+        } else {
+            panic!("Expected result to be valid");
+        }
     }
 
     #[test]
     fn test_corrupted_message_is_invalid() {
-        let mut msg = build_message(&mut thread_rng());
+        let mut msg = build_message(1057, &mut thread_rng());
         msg[20] = 42;
         assert!(validate_message(&msg).is_none());
     }
