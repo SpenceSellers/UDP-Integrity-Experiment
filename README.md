@@ -14,7 +14,7 @@ Let's send a bunch of UDP datagrams and find out.
 | Experiment | Datagrams sent | Datagrams corrupted | Datagrams that didn't arrive |
 | --- | --- | --- | --- | 
 | LAN between two computers | 58,090,836 | 0 | 0 |
-| Between South US and Canadaian VPS | 111,256 | 0 | 0 |
+| Between South US and Canadian VPS | 111,256 | 0 | 0 |
 
 ## Usage
 ### Run server:
